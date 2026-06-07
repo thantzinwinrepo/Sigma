@@ -1,0 +1,52 @@
+title: Famous Chollima - Node.js Hidden Detached Child Process Spawn
+id: 3d5f7a90-2345-6789-01bc-def012345678
+status: experimental
+description: Detects a Node.js process spawning a hidden detached child Node.js process using eval flags, consistent with the second-stage execution pattern in the Famous Chollima blockchain loader. Covers Windows and Linux paths and long obfuscated command lines.
+references:
+    - https://socket.dev/blog/famous-chollima-targets-php-developers-through-compromised-packagist-package
+author: Thant Zin Win
+date: 2026-06-07
+modified: 2026-06-07
+tags:
+    - attack.execution
+    - attack.t1059.007
+    - attack.defense_evasion
+    - attack.t1036
+logsource:
+    category: process_creation
+detection:
+    selection_parent:
+        ParentImage|endswith:
+            - '\node.exe'
+            - '/node'
+    selection_child:
+        Image|endswith:
+            - '\node.exe'
+            - '/node'
+    selection_flags:
+        CommandLine|contains:
+            - ' -e '
+            - ' --eval '
+            - ' -p '
+            - ' --print '
+    filter_legit_tools:
+        CommandLine|contains:
+            - 'mocha'
+            - 'jest'
+            - 'webpack'
+            - 'vite'
+            - 'eslint'
+            - 'ts-node'
+            - 'nodemon'
+            - 'yarn'
+            - 'npm'
+    condition: selection_parent and selection_child and selection_flags and not filter_legit_tools
+falsepositives:
+    - Build tools or test runners spawning Node child processes with eval
+    - Legitimate inline Node.js scripts in CI pipelines
+fields:
+    - CommandLine
+    - ParentCommandLine
+    - ParentImage
+    - User
+level: high

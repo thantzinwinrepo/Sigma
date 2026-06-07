@@ -1,0 +1,38 @@
+title: Famous Chollima - Node.js Connection to Blockchain Dead Drop Infrastructure
+id: 7f3a1b2c-d4e5-4f67-8901-abcdef234567
+status: experimental
+description: Detects Node.js processes connecting to blockchain RPC services used as dead drop C2. Due to high overlap with legitimate Web3 development, this rule is best used for correlation rather than standalone alerting. Combine with the campaign marker rule (2c4e6f80) for high-confidence detection.
+references:
+    - https://socket.dev/blog/famous-chollima-targets-php-developers-through-compromised-packagist-package
+author: Thant Zin Win
+date: 2026-06-07
+modified: 2026-06-07
+tags:
+    - attack.command_and_control
+    - attack.t1102.001
+logsource:
+    category: network_connection
+detection:
+    selection_process:
+        Image|endswith:
+            - '\node.exe'
+            - '/node'
+            - '\npm.exe'
+            - '/npm'
+    selection_domains:
+        DestinationHostname|contains:
+            - 'trongrid.io'
+            - 'aptoslabs.com'
+            - 'bsc-dataseed'
+            - 'bsc-rpc'
+    condition: selection_process and selection_domains
+falsepositives:
+    - Legitimate blockchain development tools and scripts
+    - Crypto wallet applications built on Node.js or Electron
+    - Web3 DApp developers testing smart contracts
+fields:
+    - Image
+    - CommandLine
+    - DestinationHostname
+    - DestinationIp
+level: medium
