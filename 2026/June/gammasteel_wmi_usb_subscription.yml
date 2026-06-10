@@ -1,0 +1,38 @@
+title: GammaSteel - WMI Event Subscription for USB Drive Interception
+id: 9f3a1b5e-4c2d-4b84-a7f3-e5c1d9b4a6f8
+status: experimental
+description: Detects GammaSteel registering a WMI event subscription on Win32_LogicalDisk DriveType=2 to intercept USB mass storage insertions and stage documents for exfiltration.
+author: Thant Zin Win
+date: 2026-06-10
+modified: 2026-06-10
+references:
+  - https://blog.sekoia.io/fsbs-matryoshka-3-3-gamaredons-gifts-that-keeps-unpacking-gammasteel/
+logsource:
+  category: ps_script
+  product: windows
+detection:
+  selection_wmi:
+    ScriptBlockText|contains: 'Register-WmiEvent'
+  selection_creation_event:
+    ScriptBlockText|contains: '__InstanceCreationEvent'
+  selection_usb_drivetype:
+    ScriptBlockText|contains:
+      - 'DriveType = 2'
+      - 'DriveType=2'
+  filter_legit:
+    ScriptBlockText|contains:
+      - 'DataLossPrevention'
+      - 'DeviceControl'
+      - 'EndpointSecurity'
+  condition: selection_wmi and selection_creation_event and selection_usb_drivetype and not filter_legit
+falsepositives:
+  - Security monitoring scripts that legitimately subscribe to USB insertion events
+level: high
+tags:
+  - attack.collection
+  - attack.t1025
+  - attack.t1120
+fields:
+  - ScriptBlockText
+  - ComputerName
+  - UserName

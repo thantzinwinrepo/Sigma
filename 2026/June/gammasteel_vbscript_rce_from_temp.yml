@@ -1,0 +1,35 @@
+title: GammaSteel - VBScript Remote Code Execution Delivered via C2 HTTP Response
+id: 5e4c7a2b-9f3d-4a90-a8c4-f2d6b9e3c1a7
+status: experimental
+description: Detects GammaSteel's backdoor capability writing VBScript received from a C2 HTTP response to a temp file and executing it via wscript.exe with the //e:vbscript flag, enabling arbitrary remote code execution at any point in the infection lifecycle.
+author: Thant Zin Win
+date: 2026-06-10
+modified: 2026-06-10
+references:
+  - https://blog.sekoia.io/fsbs-matryoshka-3-3-gamaredons-gifts-that-keeps-unpacking-gammasteel/
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_wscript:
+    Image|endswith: '\wscript.exe'
+  selection_vbscript_flag:
+    CommandLine|contains: '//e:vbscript'
+  selection_temp_path:
+    CommandLine|contains:
+      - '\AppData\Local\Temp\tmp'
+      - '\Temp\tmp'
+  condition: selection_wscript and selection_vbscript_flag and selection_temp_path
+falsepositives:
+  - Legitimate use of wscript.exe //e:vbscript with temp directory files is very rare in enterprise environments
+level: high
+tags:
+  - attack.execution
+  - attack.t1059.005
+  - attack.command_and_control
+  - attack.t1071
+fields:
+  - CommandLine
+  - ParentCommandLine
+  - ParentImage
+  - User

@@ -1,0 +1,48 @@
+title: GammaSteel - Hidden PowerShell Executing Payload Retrieved from HKCU\Printers
+id: 5c8d3e4a-2b7f-4a93-9d1e-f4a2c6b8d7e3
+name: gammasteel_hidden_ps_registry_exec
+status: experimental
+description: Detects a hidden PowerShell process reading from HKCU\Printers and executing its content as a ScriptBlock via Invoke-Command, consistent with GammaSteel's in-memory execution chain.
+author: Thant Zin Win
+date: 2026-06-10
+modified: 2026-06-10
+references:
+  - https://blog.sekoia.io/fsbs-matryoshka-3-3-gamaredons-gifts-that-keeps-unpacking-gammasteel/
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_hidden_ps:
+    Image|endswith: '\powershell.exe'
+    CommandLine|contains:
+      - '-w hidden'
+      - '-WindowStyle Hidden'
+  selection_printers_cleartext:
+    CommandLine|contains: 'Printers'
+  selection_exec:
+    CommandLine|contains:
+      - 'ScriptBlock'
+      - 'Invoke-Command'
+  selection_printers_encoded:
+    CommandLine|base64offset|contains:
+      - 'HKCU:\Printers'
+      - 'Get-ItemProperty'
+  selection_large_payload:
+    CommandLine|gt: 500
+  filter_legit:
+    CommandLine|contains: 'PrintManagement'
+  condition: selection_hidden_ps and not filter_legit and ((selection_printers_cleartext and selection_exec) or (selection_printers_encoded and selection_large_payload))
+falsepositives:
+  - No known legitimate use case for hidden PowerShell executing a ScriptBlock from HKCU\Printers
+level: critical
+tags:
+  - attack.execution
+  - attack.t1059.001
+  - attack.defense_evasion
+  - attack.t1027
+  - attack.t1112
+fields:
+  - CommandLine
+  - ParentCommandLine
+  - ParentImage
+  - User

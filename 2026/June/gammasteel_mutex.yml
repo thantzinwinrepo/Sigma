@@ -1,0 +1,29 @@
+title: GammaSteel - Orchestrator Mutex Global\assembly307
+id: 1d6b9f4c-5e2a-4f89-f7b6-d1c3e8a5f9b4
+name: gammasteel_mutex
+status: experimental
+description: Detects creation of the mutex named Global\assembly307 used by GammaSteel's orchestrator to prevent duplicate execution. This string is unique to this threat actor build.
+author: Thant Zin Win
+date: 2026-06-10
+modified: 2026-06-10
+references:
+  - https://blog.sekoia.io/fsbs-matryoshka-3-3-gamaredons-gifts-that-keeps-unpacking-gammasteel/
+logsource:
+  category: ps_script
+  product: windows
+detection:
+  selection_mutex:
+    ScriptBlockText|contains: 'Global\assembly307'
+  condition: selection_mutex
+falsepositives:
+  - None expected; this mutex name is unique to GammaSteel
+level: critical
+tags:
+  - attack.defense_evasion
+  - attack.t1480
+  - attack.execution
+  - attack.t1059.001
+fields:
+  - ScriptBlockText
+  - ComputerName
+  - UserName

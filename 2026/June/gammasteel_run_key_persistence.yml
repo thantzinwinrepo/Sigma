@@ -1,0 +1,36 @@
+title: GammaSteel - Persistence via Run Key Pointing to HKCU\Printers Payload
+id: 7d2e9b3f-1a4c-4d82-b6e0-c3f7a1d8e295
+name: gammasteel_run_key_persistence
+status: experimental
+description: Detects GammaSteel installing persistence by writing a hidden PowerShell command to HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run that retrieves and executes a payload stored in HKCU\Printers.
+author: Thant Zin Win
+date: 2026-06-10
+modified: 2026-06-10
+references:
+  - https://blog.sekoia.io/fsbs-matryoshka-3-3-gamaredons-gifts-that-keeps-unpacking-gammasteel/
+logsource:
+  category: registry_event
+  product: windows
+detection:
+  selection_run_key:
+    TargetObject|contains: '\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'
+  selection_printers_ref:
+    Details|contains: '\Printers'
+  selection_hidden_ps:
+    Details|contains:
+      - '-w hidden'
+      - '-WindowStyle Hidden'
+  condition: selection_run_key and selection_printers_ref and selection_hidden_ps
+falsepositives:
+  - No known legitimate software writes Run key entries that reference HKCU\Printers payloads
+level: critical
+tags:
+  - attack.persistence
+  - attack.t1547.001
+  - attack.defense_evasion
+  - attack.t1112
+fields:
+  - TargetObject
+  - Details
+  - User
+  - Image

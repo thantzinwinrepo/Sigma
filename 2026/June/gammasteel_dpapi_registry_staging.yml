@@ -1,0 +1,33 @@
+title: GammaSteel - DPAPI Encryption of PowerShell Functions Staged in HKCU\Printers
+id: 3a1f7c2d-8e4b-4f91-a5c9-d2e8b6f3a041
+name: gammasteel_dpapi_registry_staging
+status: experimental
+description: Detects GammaSteel dropper encrypting PowerShell functions with Windows DPAPI and storing them in HKCU\Printers. Binds payloads to the logged-in user session, complicating forensic extraction — first observed in Gamaredon's 2026 arsenal.
+author: Thant Zin Win
+date: 2026-06-10
+modified: 2026-06-10
+references:
+  - https://blog.sekoia.io/fsbs-matryoshka-3-3-gamaredons-gifts-that-keeps-unpacking-gammasteel/
+logsource:
+  category: ps_script
+  product: windows
+detection:
+  selection_dpapi:
+    ScriptBlockText|contains:
+      - 'ConvertTo-SecureString'
+      - 'ConvertFrom-SecureString'
+  selection_printers_key:
+    ScriptBlockText|contains: 'HKCU:\Printers'
+  condition: selection_dpapi and selection_printers_key
+falsepositives:
+  - Legitimate printer management scripts using DPAPI with HKCU\Printers are extremely rare; any hit warrants investigation
+level: high
+tags:
+  - attack.defense_evasion
+  - attack.t1027
+  - attack.t1027.013
+  - attack.t1112
+fields:
+  - ScriptBlockText
+  - ComputerName
+  - UserName
